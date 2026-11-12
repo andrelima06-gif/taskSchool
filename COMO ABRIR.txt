@@ -1,0 +1,76 @@
+===========================================================================
+  TaskSchool - Gerenciador de Tarefas e Estudos
+  Como usar
+===========================================================================
+
+ONDE ESTA ESTE PROJETO
+-----------------------
+C:\Users\alves\OneDrive\Desktop\TaskSchool
+
+(Esta pasta e a sua "Area de Trabalho" do Windows. Voce pode abrir ela
+clicando duas vezes no icone "TaskSchool" na area de trabalho.)
+
+
+COMO ABRIR O APP (computador)
+------------------------------
+1. De dois cliques no arquivo  iniciar.bat  (dentro desta pasta)
+2. Uma janela preta vai abrir. Isso e o servidor: NAO feche essa janela.
+3. O navegador abre sozinho em  http://localhost:3000
+4. Para encerrar: clique na janela preta e aperte Ctrl+C
+
+Se a janela ficar aparecendo avisos, tudo bem: o app sobe mesmo assim.
+
+
+COMO ABRIR NO CELULAR
+----------------------
+1. Conecte o celular no MESMO Wi-Fi do computador
+2. No computador, abra o Prompt de Comando (CMD) e digite:
+
+      ipconfig
+
+   Anote o "Endereco IPv4" (ex.: 192.168.0.15)
+3. No celular, abra o navegador e digite:
+
+      http://192.168.x.x:3000
+
+   (troque x.x pelo numero do seu IP)
+
+DICA: para deixar o endereco fixo, crie um arquivo "ip.txt" nesta pasta
+com o conteudo "http://192.168.0.15:3000" e renomeie para "abrir.html".
+
+
+INSTALAR NO CELULAR (com icone na tela inicial)
+-----------------------------------------------
+Para instalar, o endereco precisa ser HTTPS. A forma mais facil:
+
+  1. Publique este projeto no Render.com (veja o README.md)
+  2. Abra o endereco onrender.com no celular
+  3. Android (Chrome): menu  >  Instalar aplicativo
+     iPhone (Safari): Compartilhar  >  Adicionar a Tela de Inicio
+
+
+COMO FUNCIONA
+-------------
+- Na primeira vez voce escolhe seu NOME, a SERIE e a TURMA
+  (6o ao 9o ano: turmas A, B e C | 1o, 2o e 3o do EM: A, B e C,
+   e no 1o ano do EM tambem tem DSB e ADM)
+- As tarefas sao DA SUA TURMA: todo mundo da sala ve a mesma lista
+- Cada tarefa mostra quem criou
+- Para sair e entrar com outro aluno: toque no seu nome no topo
+- Em "Lembretes" voce liga o aviso diario das tarefas
+
+
+ARQUIVOS IMPORTANTES
+--------------------
+  iniciar.bat ....... liga o servidor (clique duas vezes)
+  server.js ......... servidor e API
+  public ............ a interface (HTML, CSS, JavaScript)
+  tools ............ scripts de teste
+  README.md ......... documentacao completa
+
+
+PROBLEMAS?
+----------
+- "Porta 3000 ja em uso": feche a outra janela do TaskSchool e abra de novo
+- A pagina abriu sem estilo: aperte Ctrl+Shift+R (limpa o cache)
+- Node.js nao instalado: baixe em https://nodejs.org (versao 22 ou superior)

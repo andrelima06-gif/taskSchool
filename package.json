@@ -1,0 +1,33 @@
+{
+  "name": "taskschool",
+  "version": "1.0.0",
+  "description": "TaskSchool - Gerenciador de Tarefas e Estudos para alunos (Node.js + Express + SQLite + PWA)",
+  "main": "server.js",
+  "engines": {
+    "node": ">=22.5.0"
+  },
+  "scripts": {
+    "start": "node --experimental-sqlite server.js",
+    "dev": "node --watch --experimental-sqlite server.js",
+    "icons": "node tools/generate-icons.js",
+    "test:e2e": "node tools/e2e-test.js",
+    "test:responsive": "node tools/responsive-test.js",
+    "test:cache": "node tools/cache-refresh-test.js",
+    "test:install": "node tools/installability-test.js",
+    "test:notifications": "node tools/notification-test.js",
+    "test:mobile": "node tools/mobile-test.js",
+    "clean": "node tools/clean-test-data.js",
+    "screenshots": "node tools/screenshots.js"
+  },
+  "keywords": [
+    "pwa",
+    "express",
+    "sqlite",
+    "tasks",
+    "education"
+  ],
+  "license": "MIT",
+  "dependencies": {
+    "express": "^4.22.3"
+  }
+}

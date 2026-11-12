@@ -1,0 +1,389 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="description" content="TaskSchool - Gerenciador de tarefas e estudos por turma." />
+  <meta name="theme-color" content="#218a31" />
+  <meta name="color-scheme" content="dark" />
+  <meta name="mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="apple-mobile-web-app-title" content="TaskSchool" />
+
+  <title>TaskSchool — Gerenciador de Tarefas</title>
+
+  <link rel="manifest" href="/manifest.json" />
+  <link rel="icon" type="image/svg+xml" href="/icons/favicon.svg" />
+  <link rel="apple-touch-icon" href="/icons/icon-192.png" />
+  <link rel="stylesheet" href="/style.css" />
+</head>
+<body>
+  <!-- ================= TELA DE CADASTRO ================= -->
+  <section id="auth-screen" class="auth-screen">
+    <div class="auth-card">
+      <div class="auth-brand">
+        <span class="brand-mark" aria-hidden="true">TS</span>
+        <div>
+          <h1>TaskSchool</h1>
+          <p>Gerenciador de tarefas e estudos</p>
+        </div>
+      </div>
+
+      <p class="auth-intro">
+        Entre com seu <strong>nome</strong> e sua <strong>turma</strong> para ver e
+        criar as tarefas da sua sala.
+      </p>
+
+      <form id="auth-form" novalidate>
+        <div class="field">
+          <label for="auth-name">Seu nome</label>
+          <input
+            type="text"
+            id="auth-name"
+            name="name"
+            placeholder="Ex.: Maria Silva"
+            maxlength="60"
+            autocomplete="name"
+            required
+          />
+          <small class="field-error" id="error-auth-name" role="alert"></small>
+        </div>
+
+        <div class="field-row">
+          <div class="field">
+            <label for="auth-grade">Série / Ano</label>
+            <select id="auth-grade" name="grade"></select>
+          </div>
+
+          <div class="field">
+            <label for="auth-class">Turma</label>
+            <select id="auth-class" name="className"></select>
+          </div>
+        </div>
+
+        <button type="submit" class="btn btn-primary btn-block" id="auth-submit">
+          <span id="auth-submit-label">Entrar na turma</span>
+        </button>
+      </form>
+
+      <div id="existing-students" class="existing-students" hidden>
+        <p class="existing-title">Já estuda nesta turma? Toque no seu nome:</p>
+        <div class="existing-list" id="existing-list"></div>
+      </div>
+
+      <p class="auth-note">
+        Sem senha: a turma identifica a sua lista. Use o mesmo nome para voltar a acessar.
+      </p>
+    </div>
+  </section>
+
+  <!-- ================= APLICATIVO ================= -->
+  <div id="app" class="app" hidden>
+    <!-- Banner de status offline -->
+    <div id="offline-banner" class="offline-banner" role="status" hidden>
+      <span class="dot" aria-hidden="true"></span>
+      Você está <strong>offline</strong>. As alterações ficam salvas e serão sincronizadas.
+    </div>
+
+    <header class="app-header">
+      <div class="container header-inner">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true">TS</span>
+          <div class="brand-text">
+            <h1>TaskSchool</h1>
+            <p id="class-label">Turma</p>
+          </div>
+        </div>
+
+        <div class="header-right">
+          <dl class="stats" aria-label="Resumo das tarefas">
+            <div class="stat">
+              <dt>Pendentes</dt>
+              <dd id="stat-pending">0</dd>
+            </div>
+            <div class="stat">
+              <dt>Concluídas</dt>
+              <dd id="stat-completed">0</dd>
+            </div>
+            <div class="stat stat-danger">
+              <dt>Atrasadas</dt>
+              <dd id="stat-overdue">0</dd>
+            </div>
+          </dl>
+
+          <button type="button" id="install-btn" class="btn btn-install" hidden>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
+            </svg>
+            Instalar
+          </button>
+
+          <button type="button" id="user-chip" class="user-chip" title="Trocar de aluno">
+            <span class="user-avatar" id="user-initial" aria-hidden="true">?</span>
+            <span class="user-meta">
+              <span class="user-name" id="user-name">—</span>
+              <span class="user-class" id="user-class">—</span>
+            </span>
+            <svg class="user-switch" viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3" />
+            </svg>
+          </button>
+        </div>
+      </div>
+    </header>
+
+    <main class="container layout">
+      <!-- ---------------- COLUNA LATERAL ---------------- -->
+      <div class="layout-side">
+      <!-- ---------------- FORMULÁRIO ---------------- -->
+      <section class="card form-card" id="view-new" aria-labelledby="form-title">
+        <button type="button" class="mobile-back" data-go="tasks">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+          Tarefas
+        </button>
+
+        <h2 id="form-title" class="card-title">
+          <span id="form-heading-text">Nova tarefa</span>
+          <button type="button" id="cancel-edit" class="btn btn-ghost btn-sm" hidden>Cancelar edição</button>
+        </h2>
+
+        <form id="task-form" novalidate>
+          <input type="hidden" id="task-id" value="" />
+
+          <div class="field">
+            <label for="title">Título <span class="required" aria-hidden="true">*</span></label>
+            <input
+              type="text"
+              id="title"
+              name="title"
+              placeholder="Ex.: Revisar exercícios de Matematica"
+              maxlength="120"
+              autocomplete="off"
+              required
+            />
+            <small class="field-error" id="error-title" role="alert"></small>
+          </div>
+
+          <div class="field-row">
+            <div class="field">
+              <label for="subject">Disciplina</label>
+              <input
+                type="text"
+                id="subject"
+                name="subject"
+                list="subjects-list"
+                placeholder="Ex.: Matematica"
+                maxlength="60"
+                autocomplete="off"
+              />
+              <datalist id="subjects-list"></datalist>
+            </div>
+
+            <div class="field">
+              <label for="dueDate">Prazo</label>
+              <input type="date" id="dueDate" name="dueDate" />
+            </div>
+          </div>
+
+          <button type="submit" class="btn btn-primary btn-block" id="submit-btn">
+            <span id="submit-label">Adicionar tarefa</span>
+          </button>
+
+          <p class="form-hint">
+            A tarefa fica visível para toda a sua turma.
+          </p>
+        </form>
+      </section>
+
+      <!-- ---------------- LEMBRETES ---------------- -->
+      <section class="card reminders-card" id="view-reminders" aria-labelledby="reminders-title">
+        <button type="button" class="mobile-back" data-go="tasks">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+          Tarefas
+        </button>
+
+        <h2 id="reminders-title" class="card-title">Lembretes</h2>
+
+        <div class="reminder-row">
+          <div class="reminder-text">
+            <strong>Lembrete diário</strong>
+            <span>Aviso todo dia sobre as tarefas da turma</span>
+          </div>
+          <label class="switch">
+            <input type="checkbox" id="reminder-enabled" />
+            <span class="slider" aria-hidden="true"></span>
+            <span class="sr-only">Ativar lembrete diário</span>
+          </label>
+        </div>
+
+        <div class="field" id="reminder-time-field">
+          <label for="reminder-time">Horário do aviso</label>
+          <input type="time" id="reminder-time" value="18:00" />
+        </div>
+
+        <p class="reminder-status" id="reminder-status" role="status"></p>
+
+        <button type="button" class="btn btn-ghost btn-block" id="reminder-test">
+          Enviar aviso de teste
+        </button>
+      </section>
+
+      <!-- ---------------- ALUNO ---------------- -->
+      <section class="card student-card" id="view-student" aria-labelledby="student-title">
+        <button type="button" class="mobile-back" data-go="tasks">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 18l-6-6 6-6" /></svg>
+          Tarefas
+        </button>
+
+        <h2 id="student-title" class="card-title">Minha conta</h2>
+
+        <div class="student-profile">
+          <span class="student-avatar" id="student-avatar" aria-hidden="true">?</span>
+          <div class="student-profile-text">
+            <strong id="student-name">—</strong>
+            <span id="student-class">—</span>
+          </div>
+        </div>
+
+        <button type="button" class="btn btn-ghost btn-block" id="switch-student">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="btn-icon">
+            <path d="M17 1l4 4-4 4M3 11V9a4 4 0 0 1 4-4h14M7 23l-4-4 4-4M21 13v2a4 4 0 0 1-4 4H3" />
+          </svg>
+          Trocar de aluno
+        </button>
+
+        <button type="button" class="btn btn-ghost btn-block" id="install-btn-mobile">
+          <svg viewBox="0 0 24 24" aria-hidden="true" class="btn-icon">
+            <path d="M12 3v12M7 10l5 5 5-5M5 21h14" />
+          </svg>
+          Instalar o app
+        </button>
+
+        <p class="auth-note">
+          A lista de tarefas é da sua turma. Use o mesmo nome e turma para voltar a acessar.
+        </p>
+      </section>
+      </div>
+
+      <!-- ---------------- LISTA ---------------- -->
+      <section class="list-section" aria-labelledby="list-title">
+        <div class="card">
+          <div class="list-header">
+            <h2 id="list-title" class="card-title">Minhas tarefas</h2>
+
+            <div class="filters">
+              <div class="search-box">
+                <svg viewBox="0 0 24 24" aria-hidden="true" class="search-icon">
+                  <path d="M21 21l-4.35-4.35M11 19a8 8 0 1 1 0-16 8 8 0 0 1 0 16z" />
+                </svg>
+                <input type="search" id="search" placeholder="Buscar tarefa..." aria-label="Buscar tarefa" />
+              </div>
+
+              <select id="filter-subject" aria-label="Filtrar por disciplina">
+                <option value="">Todas as disciplinas</option>
+              </select>
+            </div>
+
+            <div class="tabs" role="tablist" aria-label="Filtrar por status">
+              <button class="tab is-active" role="tab" aria-selected="true" data-filter="all">Todas</button>
+              <button class="tab" role="tab" aria-selected="false" data-filter="pending">Pendentes</button>
+              <button class="tab" role="tab" aria-selected="false" data-filter="completed">Concluídas</button>
+            </div>
+          </div>
+
+          <div class="groups">
+            <div class="group" id="group-pending">
+              <h3 class="group-title">
+                <span class="group-dot pending" aria-hidden="true"></span>
+                Pendentes
+                <span class="group-count" id="count-pending">0</span>
+              </h3>
+              <ul class="task-list" id="list-pending"></ul>
+              <p class="empty" id="empty-pending">Nenhuma tarefa pendente. Bom trabalho! 🎉</p>
+            </div>
+
+            <div class="group" id="group-completed">
+              <h3 class="group-title">
+                <span class="group-dot done" aria-hidden="true"></span>
+                Concluídas
+                <span class="group-count" id="count-completed">0</span>
+              </h3>
+              <ul class="task-list" id="list-completed"></ul>
+              <p class="empty" id="empty-completed">Você ainda não concluiu nenhuma tarefa.</p>
+            </div>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="app-footer">
+      <div class="container">
+        <p>TaskSchool &middot; tarefas compartilhadas com a sua turma</p>
+      </div>
+    </footer>
+
+    <!-- ================= NAVEGAÇÃO MOBILE ================= -->
+    <nav class="mobile-nav" aria-label="Navegação principal">
+      <button type="button" class="nav-item is-active" data-view="tasks" aria-current="page">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M9 11l3 3L22 4M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11" />
+        </svg>
+        Tarefas
+      </button>
+
+      <button type="button" class="nav-item" data-view="reminders">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 0 1-3.46 0" />
+        </svg>
+        Lembretes
+      </button>
+
+      <button type="button" class="nav-item" data-view="student">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2M12 11a4 4 0 1 0 0-8 4 4 0 0 0 0 8z" />
+        </svg>
+        Aluno
+      </button>
+    </nav>
+
+    <button type="button" class="fab" id="fab" aria-label="Nova tarefa">
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 5v14M5 12h14" /></svg>
+    </button>
+  </div>
+
+  <!-- Toasts -->
+  <div id="toast-container" class="toast-container" aria-live="polite" aria-atomic="true"></div>
+
+  <template id="task-item-template">
+    <li class="task">
+      <label class="task-check">
+        <input type="checkbox" class="task-toggle" />
+        <span class="checkmark" aria-hidden="true"></span>
+        <span class="sr-only">Marcar como concluída</span>
+      </label>
+
+      <div class="task-body">
+        <p class="task-title"></p>
+        <div class="task-meta">
+          <span class="badge badge-subject"></span>
+          <span class="badge badge-date"></span>
+          <span class="badge badge-author"></span>
+        </div>
+      </div>
+
+      <div class="task-actions">
+        <button type="button" class="icon-btn btn-edit" title="Editar" aria-label="Editar tarefa">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20h9M16.5 3.5a2.12 2.12 0 0 1 3 3L7 19l-4 1 1-4 12.5-12.5z" /></svg>
+        </button>
+        <button type="button" class="icon-btn btn-delete" title="Excluir" aria-label="Excluir tarefa">
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 6h18M8 6V4h8v2M19 6l-1 14H6L5 6M10 11v6M14 11v6" /></svg>
+        </button>
+      </div>
+    </li>
+  </template>
+
+  <script src="/reminder.js" defer></script>
+  <script src="/app.js" defer></script>
+</body>
+</html>

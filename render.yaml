@@ -1,0 +1,15 @@
+services:
+  - type: web
+    name: taskschool
+    runtime: node
+    plan: free
+    buildCommand: npm ci
+    startCommand: npm start
+    healthCheckPath: /api/health
+    autoDeploy: true
+    envVars:
+      # Node 24+ traz o módulo node:sqlite (sem dependência nativa)
+      - key: NODE_VERSION
+        value: "24"
+      - key: SEED_DEMO
+        value: "true"
